@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketPro - Advanced Stock Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary-color: #f43f5e;
+            --secondary-hover: #e11d48;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-sidebar: #1e293b;
+
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+
+            --income-color: #10b981;
+            --expense-color: #ef4444;
+
+            --chart-color-1: #6366f1;
+            --chart-color-2: #f43f5e;
+            --chart-color-3: #10b981;
+            --chart-color-4: #f59e0b;
+            --chart-color-5: #3b82f6;
+            --chart-color-6: #8b5cf6;
+            --chart-color-7: #ec4899;
+            --chart-color-8: #14b8a6;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+
+            --radius-sm: 0.25rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-full: 9999px;
+
+            --transition-fast: 150ms ease;
+            --transition: 300ms ease;
+            --transition-slow: 500ms ease;
+
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+
+            --font-light: 300;
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+
+            --sidebar-width: 280px;
+            --header-height: 70px;
+        }
+
+        .dark-theme {
+            --primary-color: #818cf8;
+            --primary-hover: #6366f1;
+            --secondary-color: #fb7185;
+            --secondary-hover: #f43f5e;
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-sidebar: #0f172a;
+
+            --border-color: #334155;
+            --border-light: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background-color var(--transition);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--bg-sidebar);
+            color: white;
+            padding: var(--spacing-lg);
+            position: fixed;
+            width: var(--sidebar-width);
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform var(--transition);
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-2xl);
+            font-size: var(--text-xl);
+            font-weight: var(--font-bold);
+        }
+
+        .logo i {
+            color: var(--primary-color);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius);
+            margin-bottom: var(--spacing-xs);
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-column: 2;
+            padding: var(--spacing-lg);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            background-color: var(--bg-primary);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius);
+            padding: var(--spacing-sm) var(--spacing-md);
+            width: 300px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            width: 100%;
+            margin-left: var(--spacing-sm);
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: none;
+            border-radius: var(--radius);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: var(--font-bold);
+            color: white;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .card-title {
+            font-size: var(--text-lg);
+            font-weight: var(--font-semibold);
+        }
+
+        .index-value {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .index-change {
+            display: flex;
+            align-items: center;
+            font-weight: var(--font-medium);
+        }
+
+        .positive {
+            color: var(--success-color);
+        }
+
+        .negative {
+            color: var(--danger-color);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow);
+            margin-bottom: var(--spacing-lg);
+            height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .time-filters {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .time-filter {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius);
+            background-color: var(--bg-secondary);
+            cursor: pointer;
+            font-size: var(--text-sm);
+        }
+
+        .time-filter.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Watchlist */
+        .watchlist {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow);
+        }
+
+        .watchlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .watchlist-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .watchlist-table th,
+        .watchlist-table td {
+            padding: var(--spacing-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .watchlist-table th {
+            color: var(--text-secondary);
+            font-weight: var(--font-medium);
+            font-size: var(--text-sm);
+        }
+
+        .watchlist-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                grid-column: 1;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: flex-start;
+            }
+
+            .search-bar {
+                width: 100%;
+            }
+        }
+
+        /* Toggle button for mobile */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: var(--spacing-md);
+            left: var(--spacing-md);
+            z-index: 200;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .menu-toggle {
+                display: flex;
+            }
+        }
+
+        /* Loading animation */
+        .loader {
+            border: 3px solid var(--bg-secondary);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* News section */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .news-card {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform var(--transition);
+        }
+
+        .news-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .news-content {
+            padding: var(--spacing-md);
+        }
+
+        .news-source {
+            color: var(--primary-color);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .news-title {
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.4;
+        }
+
+        .news-date {
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>MarketPro</span>
+            </div>
+            <div class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-search-dollar"></i>
+                <span>Market</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-star"></i>
+                <span>Watchlist</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-chart-pie"></i>
+                <span>Portfolio</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search stocks, indices, ETFs..." id="searchInput">
+                </div>
+                <div class="user-controls">
+                    <button class="theme-toggle" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-profile">
+                        <div class="user-avatar">JD</div>
+                        <span>John Doe</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Overview -->
+            <h2 class="section-title">Global Market Overview</h2>
+            <div class="dashboard-grid" id="marketOverview">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">S&P 500</h3>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="index-value">4,890.72</div>
+                    <div class="index-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        +1.45%
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">NASDAQ</h3>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="index-value">16,345.23</div>
+                    <div class="index-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        +2.13%
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">DOW JONES</h3>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="index-value">38,472.19</div>
+                    <div class="index-change negative">
+                        <i class="fas fa-caret-down"></i>
+                        -0.34%
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">NIFTY 50</h3>
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="index-value">24,426.85</div>
+                    <div class="index-change positive">
+                        <i class="fas fa-caret-up"></i>
+                        +0.87%
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>AAPL - Apple Inc.</h2>
+                    <div class="time-filters">
+                        <div class="time-filter">1D</div>
+                        <div class="time-filter">1W</div>
+                        <div class="time-filter active">1M</div>
+                        <div class="time-filter">3M</div>
+                        <div class="time-filter">1Y</div>
+                    </div>
+                </div>
+                <canvas id="stockChart"></canvas>
+            </div>
+
+            <!-- Watchlist -->
+            <div class="watchlist">
+                <div class="watchlist-header">
+                    <h2>Your Watchlist</h2>
+                    <button class="btn">Manage</button>
+                </div>
+                <table class="watchlist-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>Volume</th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlistBody">
+                        <tr>
+                            <td>AAPL</td>
+                            <td>Apple Inc.</td>
+                            <td>$218.89</td>
+                            <td class="positive">+1.34%</td>
+                            <td>42.3M</td>
+                        </tr>
+                        <tr>
+                            <td>MSFT</td>
+                            <td>Microsoft Corp.</td>
+                            <td>$420.72</td>
+                            <td class="positive">+2.15%</td>
+                            <td>28.7M</td>
+                        </tr>
+                        <tr>
+                            <td>TSLA</td>
+                            <td>Tesla Inc.</td>
+                            <td>$248.50</td>
+                            <td class="negative">-3.42%</td>
+                            <td>65.8M</td>
+                        </tr>
+                        <tr>
+                            <td>AMZN</td>
+                            <td>Amazon.com Inc.</td>
+                            <td>$182.18</td>
+                            <td class="positive">+0.87%</td>
+                            <td>38.2M</td>
+                        </tr>
+                        <tr>
+                            <td>NVDA</td>
+                            <td>NVIDIA Corp.</td>
+                            <td>$126.57</td>
+                            <td class="positive">+4.32%</td>
+                            <td>72.5M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- News Section -->
+            <h2 class="section-title" style="margin-top: 2rem;">Market News</h2>
+            <div class="news-grid" id="newsGrid">
+                <div class="news-card">
+                    <div class="news-content">
+                        <div class="news-source">Bloomberg</div>
+                        <h3 class="news-title">Fed Signals Potential Rate Cuts as Inflation Cools</h3>
+                        <div class="news-date">2 hours ago</div>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-content">
+                        <div class="news-source">CNBC</div>
+                        <h3 class="news-title">Apple Unveils New AI Features, Stock Jumps 3%</h3>
+                        <div class="news-date">4 hours ago</div>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-content">
+                        <div class="news-source">Reuters</div>
+                        <h3 class="news-title">Oil Prices Climb Amid Middle East Tensions</h3>
+                        <div class="news-date">6 hours ago</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const stockChart = document.getElementById('stockChart');
+        
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            
+            if (document.body.classList.contains('dark-theme')) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        });
+        
+        // Mobile Menu Toggle
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+        
+        // Initialize Chart
+        const initChart = () => {
+            const ctx = stockChart.getContext('2d');
+            
+            // Generate sample data
+            const data = [];
+            let value = 180;
+            
+            for (let i = 0; i < 30; i++) {
+                value += Math.random() * 4 - 2;
+                data.push(value);
+            }
+            
+            // Create chart
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 30}, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'AAPL',
+                        data: data,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#6366f1',
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+        };
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize chart
+            initChart();
+            
+            // Simulate live data updates
+            setInterval(() => {
+                // In a real app, you would fetch data from an API here
+                const marketCards = document.querySelectorAll('.card');
+                
+                marketCards.forEach(card => {
+                    const changeElement = card.querySelector('.index-change');
+                    const valueElement = card.querySelector('.index-value');
+                    
+                    // Generate a small random change
+                    const change = (Math.random() - 0.5) * 0.5;
+                    const isPositive = change >= 0;
+                    const currentValue = parseFloat(valueElement.textContent.replace(/,/g, ''));
+                    const newValue = currentValue * (1 + change/100);
+                    
+                    // Update the value and change
+                    valueElement.textContent = newValue.toLocaleString(undefined, {maximumFractionDigits: 2});
+                    
+                    // Update change indicator
+                    changeElement.className = isPositive ? 'index-change positive' : 'index-change negative';
+                    changeElement.innerHTML = isPositive ? 
+                        <i class="fas fa-caret-up"></i> +${Math.abs(change).toFixed(2)}% : 
+                        <i class="fas fa-caret-down"></i> -${Math.abs(change).toFixed(2)}%;
+                });
+                
+                // Update watchlist with random changes
+                const watchlistRows = document.querySelectorAll('#watchlistBody tr');
+                
+                watchlistRows.forEach(row => {
+                    const priceCell = row.cells[2];
+                    const changeCell = row.cells[3];
+                    
+                    const currentPrice = parseFloat(priceCell.textContent.replace('$', '').replace(/,/g, ''));
+                    const change = (Math.random() - 0.5) * 2;
+                    const newPrice = currentPrice * (1 + change/100);
+                    
+                    priceCell.textContent = $${newPrice.toFixed(2)};
+                    
+                    const isPositive = change >= 0;
+                    changeCell.className = isPositive ? 'positive' : 'negative';
+                    changeCell.textContent = isPositive ? 
+                        +${Math.abs(change).toFixed(2)}% : 
+                        -${Math.abs(change).toFixed(2)}%;
+                });
+            }, 5000); // Update every 5 seconds
+        });
+    </script>
+</body>
+</html>
